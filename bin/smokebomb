@@ -1,0 +1,38 @@
+#!/bin/bash
+
+echo "***SMOKEBOMB***"
+BREWPATH=${1:-"${HOME}/.rakudobrew"}
+BREWBIN="${BREWPATH}/bin"
+RAKUDOBREW="${BREWBIN}/rakudobrew"
+P6="${BREWBIN}/perl6"
+VMS=(moar jvm)
+SKIP="panda,DateTime::TimeZone"
+
+if [ ! -f "${RAKUDOBREW}" ]; then
+    echo "bin/rakudobrew not found in path: ${BREWPATH}"
+    echo "-- Installing rakudobrew to: ${BREWPATH}"
+    `git clone https://github.com/tadzik/rakudobrew $BREWPATH`
+fi
+
+for VM in "${VMS[@]}"; do
+    if [[ `rakudobrew build $VM` ]]; then
+        if [[ `rakudobrew switch $VM` ]]; then
+            shopt -s nocasematch
+            P6V=`$P6 -v`
+            if [[ $P6V =~ $VM ]]; then
+                if [[ `rakudobrew build-panda` ]]; then
+                    `PANDA_SUBMIT_TESTREPORTS=1 panda smoke --exclude=$SKIP`
+                else
+                    echo "FAILED: [rakudobrew build-panda] Module installer, panda, failed to install"
+                fi
+            else
+                echo "FAILED: ['${P6V}' =~ ${VM}] Failed to switch to correct VM"
+            fi
+            shopt -u nocasematch
+        else
+            echo "FAILED: [rakudobrew switch ${VM}] Problem with VM switching command"
+        fi
+    else
+        echo "FAILED: [rakudobrew build ${VM}] Problem building the VM"
+    fi
+done

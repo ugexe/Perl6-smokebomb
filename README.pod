@@ -1,0 +1,13 @@
+=pod
+
+=encoding utf8
+
+=head2 smokebomb
+
+Kill all module authors
+
+=head2 Description
+
+Smoke test the Perl6 module ecosystem
+
+=cut
