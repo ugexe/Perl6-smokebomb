@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "***SMOKEBOMB***"
+echo "***SMOKE-BOMB***"
 BREWPATH=${1:-"${HOME}/.rakudobrew"}
 BREWBIN="${BREWPATH}/bin"
 RAKUDOBREW="${BREWBIN}/rakudobrew"
@@ -15,24 +15,26 @@ if [ ! -f "${RAKUDOBREW}" ]; then
 fi
 
 for VM in "${VMS[@]}"; do
-    if [[ `rakudobrew build $VM` ]]; then
-        if [[ `rakudobrew switch $VM` ]]; then
-            shopt -s nocasematch
+    if [[ `$RAKUDOBREW build $VM` ]]; then
+        if [[ `$RAKUDOBREW switch $VM` ]]; then
             P6V=`$P6 -v`
+
+            shopt -s nocasematch
             if [[ $P6V =~ $VM ]]; then
-                if [[ `rakudobrew build-panda` ]]; then
+                if [[ `$RAKUDOBREW build-panda` ]]; then
                     `PANDA_SUBMIT_TESTREPORTS=1 panda smoke --exclude=$SKIP`
                 else
-                    echo "FAILED: [rakudobrew build-panda] Module installer, panda, failed to install"
+                    echo "FAILED; Module installer, panda, failed to install: $RAKUDOBREW build-panda"
                 fi
             else
-                echo "FAILED: ['${P6V}' =~ ${VM}] Failed to switch to correct VM"
+                echo "FAILED; Failed to switch to correct VM: '${P6V}' =~ ${VM}"
             fi
             shopt -u nocasematch
+
         else
-            echo "FAILED: [rakudobrew switch ${VM}] Problem with VM switching command"
+            echo "FAILED; Problem with VM switching command: $RAKUDOBREW switch ${VM}"
         fi
     else
-        echo "FAILED: [rakudobrew build ${VM}] Problem building the VM"
+        echo "FAILED; Problem building the VM: $RAKUDOBREW build ${VM}"
     fi
 done
