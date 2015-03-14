@@ -13,24 +13,26 @@ if [ ! -f "${RAKUDOBREW}" ]; then
     echo "-- Installing rakudobrew to: ${BREWPATH}"
     `git clone https://github.com/tadzik/rakudobrew $BREWPATH`
 fi
+export PATH="$BREWBIN:$PATH"
 
 for VM in "${VMS[@]}"; do
+     echo "**Building VM: $VM"
     if [[ `$RAKUDOBREW build $VM` ]]; then
         if [[ `$RAKUDOBREW switch $VM` ]]; then
             P6V=`$P6 -v`
+            echo "*perl6 -v: $P6V"
+            echo "**Building panda..."
 
-            shopt -s nocasematch
-            if [[ $P6V =~ $VM ]]; then
-                if [[ `$RAKUDOBREW build-panda` ]]; then
-                    `PANDA_SUBMIT_TESTREPORTS=1 panda smoke --exclude=$SKIP`
-                else
-                    echo "FAILED; Module installer, panda, failed to install: $RAKUDOBREW build-panda"
-                fi
+            if [ -d "$BREWPATH/panda" ]; then
+               (cd "$BREWPATH/panda" && git pull)
             else
-                echo "FAILED; Failed to switch to correct VM: '${P6V}' =~ ${VM}"
+                `git clone git://github.com/tadzik/panda.git $BREWPATH/panda`
             fi
-            shopt -u nocasematch
+            (cd "$BREWPATH/panda" && $P6 bootstrap.pl)
+            (cp "$BREWPATH/panda/bin/panda" "$BREWBIN")
 
+            echo "**Starting smoke testing..."
+            `PANDA_SUBMIT_TESTREPORTS=1 "$BREWBIN/panda" smoke --exclude=$SKIP`
         else
             echo "FAILED; Problem with VM switching command: $RAKUDOBREW switch ${VM}"
         fi
