@@ -13,26 +13,21 @@ if [ ! -f "${RAKUDOBREW}" ]; then
     echo "-- Installing rakudobrew to: ${BREWPATH}"
     `git clone https://github.com/tadzik/rakudobrew $BREWPATH`
 fi
-export PATH="$BREWBIN:$PATH"
 
 for VM in "${VMS[@]}"; do
-     echo "**Building VM: $VM"
+    echo "**Building VM: $VM"
+
     if [[ `$RAKUDOBREW build $VM` ]]; then
         if [[ `$RAKUDOBREW switch $VM` ]]; then
             P6V=`$P6 -v`
             echo "*perl6 -v: $P6V"
             echo "**Building panda..."
 
-            if [ -d "$BREWPATH/panda" ]; then
-               (cd "$BREWPATH/panda" && git pull)
-            else
-                `git clone git://github.com/tadzik/panda.git $BREWPATH/panda`
-            fi
-            (cd "$BREWPATH/panda" && $P6 bootstrap.pl)
-            (cp "$BREWPATH/panda/bin/panda" "$BREWBIN")
+            (cd "$BREWPATH/.panda" && git pull && $P6 rebootstrap.pl) || (`git clone git://github.com/tadzik/panda.git $BREWPATH/.panda` && cd "$BREWPATH/.panda" && $P6 rebootstrap.pl)
+            cp "$BREWPATH/.panda/bin/panda" "$BREWBIN"
 
             echo "**Starting smoke testing..."
-            `PANDA_SUBMIT_TESTREPORTS=1 "$BREWBIN/panda" smoke --exclude=$SKIP`
+            `PANDA_SUBMIT_TESTREPORTS=1 $P6 $BREWBIN/panda smoke --exclude="$SKIP"`
         else
             echo "FAILED; Problem with VM switching command: $RAKUDOBREW switch ${VM}"
         fi
