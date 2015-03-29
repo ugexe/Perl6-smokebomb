@@ -11,12 +11,12 @@ echo $$ > $PIDFILE
 trap 'rm -f "$PIDFILE" >/dev/null 2>&1' EXIT HUP KILL INT QUIT TERM
 
 echo "***SMOKE-BOMB***"
-BREWPATH=${1:-"${HOME}/.rakudobrew"}
+BREWPATH="${HOME}/.rakudobrew"
 BREWBIN="${BREWPATH}/bin"
 RAKUDOBREW="${BREWBIN}/rakudobrew"
 P6="${BREWBIN}/perl6"
 VMS=(moar jvm)
-SKIP="panda,DateTime::TimeZone"
+SKIP=${1:-"panda,DateTime::Timezone"}
 readonly PANDA_SUBMIT_TESTREPORTS=1
 
 if [ ! -f "${RAKUDOBREW}" ]; then
