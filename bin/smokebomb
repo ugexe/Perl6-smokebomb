@@ -17,11 +17,8 @@ RAKUDOBREW="${BREWBIN}/rakudobrew"
 P6="${BREWBIN}/perl6"
 VMS=(moar jvm)
 SKIP=${1:-"panda,DateTime::Timezone"}
-
-if [ $PANDA_SUBMIT_TESTREPORTS != 1]; then
-    readonly PANDA_SUBMIT_TESTREPORTS=1
-    export PANDA_SUBMIT_TESTREPORTS
-fi
+readonly PANDA_SUBMIT_TESTREPORTS=1
+export PANDA_SUBMIT_TESTREPORTS
 
 if [ ! -f "${RAKUDOBREW}" ]; then
     echo "bin/rakudobrew not found in path: ${BREWPATH}"
